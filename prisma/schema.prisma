@@ -21,6 +21,8 @@ model User {
   image     String?
   role      Role     @default(USER)
   bookmarks Link[]
+  password  String
+  token     String?
 }
 
 enum Role {

@@ -1,16 +1,34 @@
 "use client";
-import React from "react";
+import React, { FormEvent, MouseEvent } from "react";
 import { useRouter } from "next/navigation";
+import { gql, useMutation } from "@apollo/client";
+
+const LoginMutation = gql`
+  mutation LoginMutation($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      email
+    }
+  }
+`;
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
 
-  const handleClick = async (e: any) => {
+  const [login, { error, data }] = useMutation(LoginMutation, {
+    variables: { email, password },
+    // 登录成功回调
+    onCompleted: (data) => {
+      console.log(data)
+    }
+  });
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    //fetch
+    login();
   };
+
   return (
     <section className="bg-gray-50">
       <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
@@ -19,7 +37,7 @@ export default function Login() {
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl">
               Sign in to your account
             </h1>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label className="block mb-2 text-sm font-medium text-gray-900">
                   email
@@ -47,7 +65,6 @@ export default function Login() {
                 />
               </div>
               <button
-                onClick={handleClick}
                 type="submit"
                 className="w-full text-white bg-gray-600 hover:bg-primary-700 focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
