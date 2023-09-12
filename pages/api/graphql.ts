@@ -1,22 +1,19 @@
 // pages/api/graphql.ts
-import { makeSchema, queryType } from 'nexus'
-import { ApolloServer } from 'apollo-server-micro'
-const Query = queryType({
-  definition(t) {
-    t.string('hello', { resolve: () => 'hello world!' })
-  },
-})
-const schema = makeSchema({
-  types: [Query],
-})
-const server = new ApolloServer({
+
+import { createYoga } from "graphql-yoga";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { schema } from "../../graphql/schema";
+
+export default createYoga<{
+  req: NextApiRequest;
+  res: NextApiResponse;
+}>({
   schema,
-})
+  graphqlEndpoint: "/api/graphql",
+});
+
 export const config = {
   api: {
     bodyParser: false,
   },
-}
-export default server.createHandler({
-  path: '/api/graphql',
-})
+};
