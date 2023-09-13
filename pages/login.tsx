@@ -6,7 +6,7 @@ import { gql, useMutation } from "@apollo/client";
 const LoginMutation = gql`
   mutation LoginMutation($email: String!, $password: String!) {
     login(email: $email, password: $password) {
-      email
+      token
     }
   }
 `;

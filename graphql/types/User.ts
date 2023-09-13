@@ -29,15 +29,6 @@ builder.queryField("users", (t) =>
   })
 );
 
-// builder.queryField("me", (t) =>
-//   t.prismaField({
-//     type: "User",
-//     resolve: (query) => {
-//       console.log(query);
-//     },
-//   })
-// );
-
 //log in
 builder.mutationField("login", (t) =>
   t.prismaField({
@@ -67,7 +58,7 @@ builder.mutationField("login", (t) =>
           expiresIn: 60 * 60 * 24 * 30, // token 的有效期为 30 天
         }
       );
-      return { token, user };
+      return { ...user, token };
     },
   })
 );
