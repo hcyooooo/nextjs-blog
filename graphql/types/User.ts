@@ -1,7 +1,7 @@
 // /graphql/types/User.ts
 import { builder } from "../builder";
-import { encrypt, decrypt } from "../../utils";
-const JWT_SECRET_KEY = "hcyoooo"; // 准备 JWT 的密钥
+const bcrypt = require("bcrypt");
+const JWT_SECRET_KEY = "hcyoooo"; // JWT 的密钥
 
 var jwt = require("jsonwebtoken");
 
@@ -12,6 +12,7 @@ builder.prismaObject("User", {
     image: t.exposeString("image", { nullable: true }),
     role: t.expose("role", { type: Role }),
     bookmarks: t.relation("bookmarks"),
+    token: t.exposeString("token", { nullable: true }),
   }),
 });
 
@@ -28,21 +29,14 @@ builder.queryField("users", (t) =>
   })
 );
 
-// add user
-builder.mutationField("addUser", (t) =>
-  t.prismaField({
-    type: "User",
-    args: {
-      email: t.arg.string({ required: true }),
-    },
-    //@ts-ignore
-    resolve: (query, _parent, args) => {
-      return prisma.user.create({
-        data: { email: args.email },
-      });
-    },
-  })
-);
+// builder.queryField("me", (t) =>
+//   t.prismaField({
+//     type: "User",
+//     resolve: (query) => {
+//       console.log(query);
+//     },
+//   })
+// );
 
 //log in
 builder.mutationField("login", (t) =>
@@ -54,29 +48,26 @@ builder.mutationField("login", (t) =>
     },
     resolve: async (query, parent, args) => {
       const { email, password } = args;
-      try {
-        let user = prisma.user.findUniqueOrThrow({
-          where: { email, password },
-        });
-        if (!user) {
-          throw new Error("邮箱不存在或者密码错误");
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+      if (!user) {
+        throw new Error("user not found");
+      }
+      const passwordValid = await bcrypt.compare(password, user.password);
+      if (!passwordValid) {
+        throw new Error("password not valid");
+      }
+      const token = jwt.sign(
+        {
+          id: user.id,
+        },
+        JWT_SECRET_KEY,
+        {
+          expiresIn: 60 * 60 * 24 * 30, // token 的有效期为 30 天
         }
-        // 1.生成 token
-        const token = jwt.sign(
-          {
-            password,
-          },
-          JWT_SECRET_KEY,
-          {
-            expiresIn: 60 * 60 * 24 * 30, // token 的有效期为 30 天
-          }
-        );
-
-        return await prisma.user.update({
-          where: { email },
-          data: { token },
-        });
-      } catch (error) {}
+      );
+      return { token, user };
     },
   })
 );
@@ -91,14 +82,17 @@ builder.mutationField("register", (t) =>
     },
     resolve: async (query, parent, args) => {
       const { email, password } = args;
-      try {
-        return await prisma.user.create({
-          data: {
-            email,
-            password: encrypt(password),
-          },
-        });
-      } catch (error) {}
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) {
+        throw new Error("user already exists");
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      return await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+        },
+      });
     },
   })
 );

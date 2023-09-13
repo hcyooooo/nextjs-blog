@@ -10,6 +10,7 @@ export default createYoga<{
 }>({
   schema,
   graphqlEndpoint: "/api/graphql",
+  context: (req) => ({ req }), 
 });
 
 export const config = {

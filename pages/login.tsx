@@ -20,8 +20,10 @@ export default function Login() {
     variables: { email, password },
     // 登录成功回调
     onCompleted: (data) => {
-      console.log(data)
-    }
+      alert("登录成功");
+      localStorage.setItem("token", data.login.token);
+      router.push("/");
+    },
   });
 
   const handleSubmit = async (e: FormEvent) => {
