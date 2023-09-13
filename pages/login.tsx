@@ -18,7 +18,6 @@ export default function Login() {
 
   const [login, { error, data }] = useMutation(LoginMutation, {
     variables: { email, password },
-    // 登录成功回调
     onCompleted: (data) => {
       alert("登录成功");
       localStorage.setItem("token", data.login.token);

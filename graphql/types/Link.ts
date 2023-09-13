@@ -49,7 +49,7 @@ builder.queryField("link", (t) => {
   });
 });
 
-// add link 
+// add link
 //tbd
 builder.mutationField("addLink", (t) => {
   return t.prismaField({

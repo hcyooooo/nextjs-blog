@@ -1,7 +1,7 @@
 // /graphql/types/User.ts
 import { builder } from "../builder";
 const bcrypt = require("bcrypt");
-const JWT_SECRET_KEY = "hcyoooo"; // JWT 的密钥
+export const JWT_SECRET_KEY = "hcyoooo"; // JWT 的密钥
 
 var jwt = require("jsonwebtoken");
 
@@ -20,6 +20,7 @@ const Role = builder.enumType("Role", {
   values: ["USER", "ADMIN"] as const,
 });
 
+// all users
 builder.queryField("users", (t) =>
   t.prismaField({
     type: ["User"],
@@ -63,8 +64,8 @@ builder.mutationField("login", (t) =>
   })
 );
 
-//register
-builder.mutationField("register", (t) =>
+//sign up
+builder.mutationField("signup", (t) =>
   t.prismaField({
     type: "User",
     args: {
@@ -82,6 +83,23 @@ builder.mutationField("register", (t) =>
         data: {
           email,
           password: hashedPassword,
+        },
+      });
+    },
+  })
+);
+
+//me
+builder.queryField("me", (t) =>
+  t.prismaField({
+    type: "User",
+    resolve: (query, _parent, _args, _ctx, _info) => {
+      return prisma.user.findUnique({
+        where: {
+          id: _ctx.user.id,
+        },
+        select: {
+          email: true,
         },
       });
     },
