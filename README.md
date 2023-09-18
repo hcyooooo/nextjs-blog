@@ -14,3 +14,4 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+在 .env 中修改db地址
